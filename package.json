@@ -1,9 +1,24 @@
 {
   "name": "jaiden",
-  "version": "0.1.0",
-  "description": "Mini asistente de código de código abierto que corre con Ollama local",
+  "version": "0.2.0",
+  "description": "Tu compañero de terminal open source: CLI local con Ollama, modelos chicos (1.5B–3B), memoria simple y modos fast/smart",
   "type": "module",
   "license": "MIT",
+  "author": "Juan Beresiarte",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/beresiartejuan/jaiden.git"
+  },
+  "homepage": "https://github.com/beresiartejuan/jaiden#readme",
+  "bugs": "https://github.com/beresiartejuan/jaiden/issues",
+  "keywords": [
+    "ollama",
+    "cli",
+    "llm",
+    "local",
+    "assistant",
+    "companion"
+  ],
   "bin": {
     "jaiden": "dist/index.js"
   },

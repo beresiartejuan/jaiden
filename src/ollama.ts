@@ -1,6 +1,7 @@
 const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
-// Jaiden usa modelos chicos de Ollama local. Default: qwen2.5-coder:1.5b.
+// Jaiden usa modelos chicos de Ollama local.
 export const MODEL = process.env.JAIDEN_MODEL ?? "qwen2.5:3b-instruct-q4_K_M";
+export const FAST_MODEL = process.env.JAIDEN_FAST_MODEL ?? "qwen2.5-coder:1.5b-instruct-q4_K_M";
 
 interface GenerateChunk {
   response?: string;
@@ -11,13 +12,17 @@ interface GenerateChunk {
  * Envía un mensaje suelto al modelo de Ollama en modo streaming (NDJSON).
  * Cada token llega por `onChunk`; devuelve la respuesta completa al final.
  */
-export async function chat(prompt: string, onChunk: (text: string) => void): Promise<string> {
+export async function chat(
+  prompt: string,
+  onChunk: (text: string) => void,
+  model: string = MODEL,
+): Promise<string> {
   let res: Response;
   try {
     res = await fetch(`${OLLAMA_URL}/api/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: MODEL, prompt, stream: true }),
+      body: JSON.stringify({ model, prompt, stream: true }),
     });
   } catch {
     throw new Error(

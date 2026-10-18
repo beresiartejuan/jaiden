@@ -7,8 +7,10 @@ CLI minimalista en Node + TypeScript que usa Ollama local con modelos chicos
 **Objetivo v0.1:** el CLI solo responde (prompt → respuesta) más una memoria
 absurdamente simple: UN string en `~/.jaiden/memory.txt` que el propio modelo
 reescribe al mezclar recuerdos nuevos (`--recuerda`). La memoria se pasa como
-contexto en el chat normal, pero NO en el prompt de mezcla. No agregar tools,
-REPL ni historial hasta que se decida lo contrario; mantenerlo lo más simple posible.
+contexto en el chat normal, pero NO en el prompt de mezcla. Modos: `normal`,
+`--fast` (modelo chiquito `FAST_MODEL`) y `--smart` (borrador + refinado, dos
+pasadas). No agregar tools, REPL ni historial hasta que se decida lo contrario;
+mantenerlo lo más simple posible.
 
 ## Comandos
 
