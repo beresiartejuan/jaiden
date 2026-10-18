@@ -8,7 +8,7 @@ Tu **compañero de terminal** open source. Jaiden corre 100% en local con los mo
 
 - Node.js >= 18
 - [Ollama](https://ollama.com/download) corriendo (`ollama serve`)
-- El modelo descargado: `ollama pull qwen2.5-coder:1.5b-instruct-q4_K_M`
+- El modelo descargado: `ollama pull qwen2.5:3b-instruct-q4_K_M`
 
 ## Instalación
 
@@ -21,29 +21,42 @@ pnpm link --global  # opcional: instala el comando `jaiden` globalmente
 ## Uso
 
 ```bash
-jaiden "explicame qué es un closure en JS"
-echo "tu texto" | jaiden
-jaiden            # muestra ayuda
+jaiden "explicame qué es un closure en JS"   # chat normal (con memoria como contexto)
+echo "tu texto" | jaiden                     # idem, por stdin
+jaiden --recuerda "me gusta el mate"         # agrega un recuerdo a la memoria
+jaiden --memoria                             # muestra la memoria actual
+jaiden --olvida                              # borra toda la memoria
+jaiden --help                                # ayuda
 ```
+
+## Memoria
+
+Absurdamente simple: **un solo string** en `~/.jaiden/memory.txt`.
+
+- `--recuerda "<dato>"`: el propio modelo recibe (memoria vieja + dato nuevo) y **reescribe** ese único string mezclando todo. La memoria vieja NO se le pasa al chat del merge como contexto de usuario; es input directo del prompt de mezcla.
+- Chat normal: el string de memoria se antepone como contexto al prompt.
+- Advertencia honesta: con modelos de 1.5B el "resumen" puede inventar detalles. Es parte del encanto.
 
 ## Configuración
 
 | Variable       | Default                  | Descripción                    |
 | -------------- | ------------------------ | ------------------------------ |
 | `OLLAMA_URL`   | `http://localhost:11434` | URL de la API de Ollama        |
-| `JAIDEN_MODEL` | `qwen2.5-coder:1.5b-instruct-q4_K_M`     | Modelo a usar (chico, 1.5B–3B) |
+| `JAIDEN_MODEL` | `qwen2.5:3b-instruct-q4_K_M`     | Modelo a usar (chico, 1.5B–3B) |
 
 ## Estructura
 
 ```
 src/
-  index.ts   # CLI: toma el prompt (argv o stdin) y escupe la respuesta
+  index.ts   # CLI: flags de memoria + chat (prompt → respuesta, streaming)
   ollama.ts  # cliente mínimo de la API de Ollama (/api/generate, streaming NDJSON)
+  memory.ts  # memoria: un solo string en ~/.jaiden/memory.txt, mezclado por el modelo
 ```
 
 ## Roadmap
 
 - [x] Streaming de respuestas
+- [x] Memoria de un solo string (`--recuerda` / `--memoria` / `--olvida`)
 - [ ] Chat interactivo (REPL) con historial
 - [ ] Tools de archivos (`read_file`, `write_file`)
 - [ ] Ejecutar comandos con confirmación

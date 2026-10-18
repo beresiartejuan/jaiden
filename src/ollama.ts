@@ -1,6 +1,6 @@
 const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
 // Jaiden usa modelos chicos de Ollama local. Default: qwen2.5-coder:1.5b.
-export const MODEL = process.env.JAIDEN_MODEL ?? "qwen2.5-coder:1.5b-instruct-q4_K_M";
+export const MODEL = process.env.JAIDEN_MODEL ?? "qwen2.5:3b-instruct-q4_K_M";
 
 interface GenerateChunk {
   response?: string;

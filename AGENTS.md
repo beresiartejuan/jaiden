@@ -2,9 +2,12 @@
 
 Jaiden es un **compañero de terminal** open source — no un agente de desarrollo.
 CLI minimalista en Node + TypeScript que usa Ollama local con modelos chicos
-(1.5B–3B, default `qwen2.5-coder:1.5b-instruct-q4_K_M`).
+(1.5B–3B, default `qwen2.5:3b-instruct-q4_K_M`).
 
-**Objetivo v0.1:** el CLI solo responde (prompt → respuesta). No agregar tools,
+**Objetivo v0.1:** el CLI solo responde (prompt → respuesta) más una memoria
+absurdamente simple: UN string en `~/.jaiden/memory.txt` que el propio modelo
+reescribe al mezclar recuerdos nuevos (`--recuerda`). La memoria se pasa como
+contexto en el chat normal, pero NO en el prompt de mezcla. No agregar tools,
 REPL ni historial hasta que se decida lo contrario; mantenerlo lo más simple posible.
 
 ## Comandos
