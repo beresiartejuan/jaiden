@@ -52,6 +52,19 @@ Absurdamente simple: **un solo string** en `~/.jaiden/memory.txt`.
 - Chat normal: el string de memoria se antepone como contexto al prompt.
 - Advertencia honesta: con modelos de 1.5B el "resumen" puede inventar detalles. Es parte del encanto.
 
+## Herramienta
+
+Jaiden tiene **una sola herramienta**: `run_command`. Si necesita mirar algo (listar archivos, leer un log), el modelo devuelve un JSON con el comando y **siempre** te pregunta antes:
+
+```
+🔧 jaiden quiere ejecutar: `ls` — ¿permitir? [s/N]
+```
+
+- Aprobás con `s` (o `y`); cualquier otra cosa rechaza.
+- El resultado se devuelve al modelo y responde con eso (máx. 3 comandos seguidos).
+- Funciona en los tres modos: en `--smart` el loop ocurre durante el borrador.
+- Wart conocida: el JSON del tool-call se ve un momento en pantalla antes de la pregunta. Simpleza ante todo.
+
 ## Configuración
 
 | Variable            | Default                              | Descripción                    |
@@ -73,9 +86,9 @@ src/
 
 - [x] Streaming de respuestas
 - [x] Memoria de un solo string (`--recuerda` / `--memoria` / `--olvida`)
+- [x] Ejecutar comandos con confirmación (`run_command`)
 - [ ] Chat interactivo (REPL) con historial
 - [ ] Tools de archivos (`read_file`, `write_file`)
-- [ ] Ejecutar comandos con confirmación
 - [ ] Streaming de respuestas
 
 ## Licencia

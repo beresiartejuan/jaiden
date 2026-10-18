@@ -1,6 +1,8 @@
 #!/usr/bin/env node
+import * as readline from "node:readline";
 import { forget, readMemory, remember } from "./memory.js";
 import { chat, FAST_MODEL, MODEL } from "./ollama.js";
+import { parseToolCall, runCommand, TOOL_HINT } from "./tools.js";
 
 // Jaiden v0.1: un CLI que responde, con una memoria absurdamente simple
 // (un solo string en ~/.jaiden/memory.txt que el propio modelo reescribe).
@@ -36,7 +38,63 @@ function showHelp() {
   console.log(`\nModos:`);
   console.log(`     --fast    responde con el modelo chiquito (${FAST_MODEL})`);
   console.log(`     --smart   dos pasadas: borrador, luego se critica y refina`);
+  console.log(
+    `\nHerramienta: puede pedir ejecutar un comando de shell; SIEMPRE te pregunta antes.`,
+  );
   console.log(`\nModelo normal: ${MODEL} (JAIDEN_MODEL) · fast: JAIDEN_FAST_MODEL`);
+}
+
+const MAX_TOOL_STEPS = 3;
+
+/** Pregunta sí/no al usuario en la terminal. */
+async function confirm(question: string): Promise<boolean> {
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const answer = await new Promise<string>((resolve) => rl.question(question, resolve));
+  rl.close();
+  return /^[sSíiIyY]$/.test(answer.trim());
+}
+
+/**
+ * Loop de la herramienta: el modelo puede pedir comandos (uno por pasada),
+ * el usuario aprueba cada uno, y el resultado alimenta la siguiente pasada.
+ * Devuelve la primera respuesta que NO sea un tool-call.
+ */
+async function withToolLoop(context: string, model: string, stream: boolean): Promise<string> {
+  let acc = context;
+  for (let step = 0; step <= MAX_TOOL_STEPS; step++) {
+    const reply = await chat(
+      acc,
+      stream ? (t) => process.stdout.write(t) : () => process.stdout.write("."),
+      model,
+    );
+
+    const call = parseToolCall(reply);
+    if (!call) return reply;
+    if (stream) process.stdout.write("\n");
+
+    if (step === MAX_TOOL_STEPS) {
+      console.log("  ⚠️  demasiados comandos seguidos, corto el loop");
+      return reply;
+    }
+
+    const ok = await confirm(
+      `  🔧 jaiden quiere ejecutar: \`${call.command}\` — ¿permitir? [s/N] `,
+    );
+    const result = ok
+      ? await runCommand(call.command, process.cwd())
+      : "(el usuario rechazó ejecutar el comando)";
+    if (ok)
+      console.log(
+        result
+          .split("\n")
+          .map((l) => `  │ ${l}`)
+          .join("\n"),
+      );
+
+    acc += `\n\nPediste este comando: ${call.command}\nResultado:\n${result}\n\nCon este resultado, respondé al usuario en texto normal. NO pidas más comandos.`;
+    if (stream) process.stdout.write("  ▸ ");
+  }
+  return "";
 }
 
 const REFINE_PROMPT = (pregunta: string, borrador: string) => `Pregunta del usuario:
@@ -105,7 +163,7 @@ async function main() {
 
     if (mode === "fast") {
       console.log(header("fast"));
-      await chat(context, (t) => process.stdout.write(t), FAST_MODEL);
+      await withToolLoop(TOOL_HINT + context, FAST_MODEL, true);
       process.stdout.write("\n");
       return;
     }
@@ -132,9 +190,9 @@ async function main() {
         ? `Datos que tenés sobre el usuario: ${relevant}.\n\n${prompt}`
         : prompt;
 
-      // Pasada 1: borrador, no se muestra (solo un indicador de vida).
+      // Pasada 1: borrador con herramienta (oculto, solo puntitos).
       process.stdout.write("  ✏️  borrador");
-      const draft = await chat(smartContext, () => process.stdout.write("."));
+      const draft = await withToolLoop(TOOL_HINT + smartContext, MODEL, false);
       process.stdout.write("\n  ✨ refinando\n");
       // Pasada 2: critica el borrador y streama la respuesta final.
       await chat(REFINE_PROMPT(smartContext, draft), (t) => process.stdout.write(t));
@@ -143,7 +201,7 @@ async function main() {
     }
 
     console.log(header("normal"));
-    await chat(context, (t) => process.stdout.write(t));
+    await withToolLoop(TOOL_HINT + context, MODEL, true);
     process.stdout.write("\n");
   } catch (err) {
     console.error(`jaiden: ${err instanceof Error ? err.message : String(err)}`);

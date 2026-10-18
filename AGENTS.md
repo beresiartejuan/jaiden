@@ -9,8 +9,10 @@ absurdamente simple: UN string en `~/.jaiden/memory.txt` que el propio modelo
 reescribe al mezclar recuerdos nuevos (`--recuerda`). La memoria se pasa como
 contexto en el chat normal, pero NO en el prompt de mezcla. Modos: `normal`,
 `--fast` (modelo chiquito `FAST_MODEL`) y `--smart` (borrador + refinado, dos
-pasadas). No agregar tools, REPL ni historial hasta que se decida lo contrario;
-mantenerlo lo más simple posible.
+pasadas). **Una sola herramienta**: `run_command` (src/tools.ts) — el modelo
+pide ejecutar un comando, el usuario lo aprueba uno por uno. No agregar más
+tools, REPL ni historial hasta que se decida lo contrario; mantenerlo lo más
+simple posible.
 
 ## Comandos
 
